@@ -744,14 +744,15 @@ Mine:
 - [x] Do not implement feature logic.
 - [x] Run `./gradlew clean test assembleDebug`.
 
-### Stage 1 — Submodules and dictionary settings shell
+### Stage 1 — Submodules and dictionary settings shell (complete)
 
-- Add hoshidicts submodules.
-- Settings → Dictionaries shell.
-- Import button placeholder.
-- Imported dictionary models.
-- Repository interfaces.
-- Tests.
+- [x] Add hoshidicts submodules.
+- [x] Settings → Dictionaries shell.
+- [x] Import button placeholder.
+- [x] Imported dictionary models.
+- [x] Repository interfaces and in-memory fakes.
+- [x] Tests.
+- [x] Run `./gradlew clean test assembleDebug`.
 
 ### Stage 2 — Dictionary import
 

@@ -32,4 +32,20 @@ class MainActivityTest {
             .check(matches(isDisplayed()))
             .check(matches(withText(R.string.settings_title)))
     }
+
+    @Test
+    fun settingsNavigatesToDictionaries() {
+        onView(withId(R.id.settings_button)).perform(click())
+        onView(withId(R.id.dictionaries_button)).perform(click())
+
+        onView(withId(R.id.dictionaries_title))
+            .check(matches(isDisplayed()))
+            .check(matches(withText(R.string.dictionaries_title)))
+        onView(withId(R.id.dictionaries_empty_title))
+            .check(matches(isDisplayed()))
+            .check(matches(withText(R.string.no_dictionaries_imported)))
+        onView(withId(R.id.import_dictionary_button))
+            .check(matches(isDisplayed()))
+            .check(matches(withText(R.string.import_dictionary)))
+    }
 }

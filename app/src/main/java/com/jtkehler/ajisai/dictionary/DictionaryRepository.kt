@@ -17,3 +17,11 @@ data class DictionaryEntry(
 interface DictionaryRepository {
     suspend fun lookup(request: LookupRequest): List<DictionaryEntry>
 }
+
+/** In-memory lookup fake for tests and UI development before hoshidicts integration. */
+class InMemoryDictionaryRepository(
+    private val entriesByText: Map<String, List<DictionaryEntry>> = emptyMap(),
+) : DictionaryRepository {
+    override suspend fun lookup(request: LookupRequest): List<DictionaryEntry> =
+        entriesByText[request.text].orEmpty()
+}
