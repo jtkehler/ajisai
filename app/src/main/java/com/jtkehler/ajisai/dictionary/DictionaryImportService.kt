@@ -1,26 +1,38 @@
 package com.jtkehler.ajisai.dictionary
 
-/** Minimal source description; Android document access is added with real import. */
+/** Persistable Android document reference selected by the user. */
 data class DictionaryImportRequest(
+    val sourceUri: String,
     val displayName: String,
 )
 
+enum class DictionaryImportStage {
+    PREPARING,
+    IMPORTING,
+    SAVING,
+}
+
 sealed interface DictionaryImportResult {
-    data class Success(val dictionary: ImportedDictionary) : DictionaryImportResult
+    data class Success(val dictionaries: List<ImportedDictionary>) : DictionaryImportResult
 
     data class Failure(val message: String) : DictionaryImportResult
 
-    data object NotImplemented : DictionaryImportResult
 }
 
-/** Boundary for the future hoshidicts-backed Yomitan zip importer. */
+/** Boundary for importing Yomitan archives without exposing hoshidicts to the UI. */
 interface DictionaryImportService {
-    suspend fun importDictionary(request: DictionaryImportRequest): DictionaryImportResult
+    suspend fun importDictionary(
+        request: DictionaryImportRequest,
+        onProgress: (DictionaryImportStage) -> Unit = {},
+    ): DictionaryImportResult
 }
 
-/** Configurable fake that deliberately performs no file or hoshidicts work. */
+/** Configurable fake for unit and UI tests. */
 class FakeDictionaryImportService(
-    private val result: DictionaryImportResult = DictionaryImportResult.NotImplemented,
+    private val result: DictionaryImportResult,
 ) : DictionaryImportService {
-    override suspend fun importDictionary(request: DictionaryImportRequest): DictionaryImportResult = result
+    override suspend fun importDictionary(
+        request: DictionaryImportRequest,
+        onProgress: (DictionaryImportStage) -> Unit,
+    ): DictionaryImportResult = result
 }

@@ -754,15 +754,16 @@ Mine:
 - [x] Tests.
 - [x] Run `./gradlew clean test assembleDebug`.
 
-### Stage 2 — Dictionary import
+### Stage 2 — Dictionary import (complete)
 
-- Yomitan zip import through hoshidicts.
-- Import progress.
-- Imported dictionary list.
-- Enable/disable.
-- Priority.
-- Delete.
-- Tests with fakes/fixtures.
+- [x] Yomitan zip import through hoshidicts.
+- [x] WorkManager import with visible progress states.
+- [x] Persisted imported dictionary metadata and list.
+- [x] Enable/disable.
+- [x] Priority and reorder controls.
+- [x] Delete.
+- [x] Tests with fakes/fixtures.
+- [x] Run `./gradlew clean test assembleDebug`.
 
 ### Stage 3 — MediaProjection screenshot capture
 
