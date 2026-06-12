@@ -728,9 +728,9 @@ Mine:
 - [x] Add smoke tests for app launch/settings entry.
 - [x] Run `./gradlew clean test assembleDebug`.
 
-### Stage 0C — Placeholder architecture boundaries
+### Stage 0C — Placeholder architecture boundaries (complete)
 
-- Add minimal packages/interfaces for:
+- [x] Add minimal packages/interfaces for:
   - capture
   - overlay
   - input
@@ -740,9 +740,9 @@ Mine:
   - audio
   - mining
   - settings
-- Keep implementations empty/minimal.
-- Do not implement feature logic.
-- Run `./gradlew clean test assembleDebug`.
+- [x] Keep implementations empty/minimal.
+- [x] Do not implement feature logic.
+- [x] Run `./gradlew clean test assembleDebug`.
 
 ### Stage 1 — Submodules and dictionary settings shell
 
