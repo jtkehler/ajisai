@@ -8,6 +8,9 @@ import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import com.jtkehler.ajisai.dictionary.DictionaryDependencies
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -16,6 +19,17 @@ import org.junit.runner.RunWith
 class MainActivityTest {
     @get:Rule
     val activityRule = ActivityScenarioRule(MainActivity::class.java)
+
+    @Before
+    fun clearImportedDictionaries() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val metadata = DictionaryDependencies.metadataRepository(context)
+        val storage = DictionaryDependencies.storage(context)
+        metadata.getAll().forEach { dictionary ->
+            storage.delete(dictionary)
+            metadata.delete(dictionary.id)
+        }
+    }
 
     @Test
     fun mainActivityLaunchesAndRenders() {

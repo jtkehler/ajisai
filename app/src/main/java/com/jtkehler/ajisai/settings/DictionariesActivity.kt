@@ -176,6 +176,9 @@ class DictionariesActivity : AppCompatActivity() {
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         })
         header.addView(MaterialSwitch(this).apply {
+            showText = false
+            textOn = ""
+            textOff = ""
             isChecked = dictionary.enabled
             contentDescription = getString(R.string.dictionary_enabled_description, dictionary.title)
             setOnCheckedChangeListener { _, enabled ->

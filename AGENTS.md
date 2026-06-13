@@ -263,3 +263,30 @@ Prefer TODOs and interfaces over speculative implementation for future items lik
 - Multi-OCR-box auto-selection.
 - Whisper alignment.
 - Pre-trim audio on OCR trigger.
+
+## WSL E2E testing
+
+A physical Android device can be connected to WSL over wireless ADB.
+
+Use this command for device-backed self-correction:
+
+```bash
+./scripts/e2e.sh
+```
+
+This requires exactly one authorized device in `adb devices`. The script runs local
+unit tests and the normal connected instrumentation suite, then writes filtered logs
+to `build/e2e/logcat-filtered.txt`.
+
+The real JMdict import/restart regression is intentionally opt-in:
+
+```bash
+./scripts/e2e-real-jmdict.sh
+```
+
+It downloads and caches the full JMdict Yomitan archive under `build/e2e/assets/`,
+clears app data, imports it in a targeted instrumentation test, force-stops the app,
+and verifies the Dictionaries screen after a cold reopen. Do not commit the archive.
+Failure logs are written to `build/e2e/logcat-real-jmdict.txt`; connected test reports
+remain under `app/build/reports/androidTests/connected/` and
+`app/build/outputs/androidTest-results/connected/`.

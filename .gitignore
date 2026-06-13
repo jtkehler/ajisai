@@ -13,3 +13,6 @@
 .externalNativeBuild
 .cxx
 local.properties
+# Local E2E/debug output
+build/e2e/
+test-fixtures/dictionaries/*.zip

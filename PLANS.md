@@ -763,6 +763,8 @@ Mine:
 - [x] Priority and reorder controls.
 - [x] Delete.
 - [x] Tests with fakes/fixtures.
+- [x] Physical-device E2E scripts for normal connected tests and opt-in real JMdict import/restart regression.
+- [x] Verify imported dictionary settings render after force-stop and cold reopen.
 - [x] Run `./gradlew clean test assembleDebug`.
 
 ### Stage 3 — MediaProjection screenshot capture
