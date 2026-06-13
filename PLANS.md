@@ -765,16 +765,18 @@ Mine:
 - [x] Tests with fakes/fixtures.
 - [x] Physical-device E2E scripts for normal connected tests and opt-in real JMdict import/restart regression.
 - [x] Verify imported dictionary settings render after force-stop and cold reopen.
+- [x] Clear completed import work observation IDs so Dictionaries does not re-observe stale work.
 - [x] Run `./gradlew clean test assembleDebug`.
 
 ### Stage 3 — MediaProjection screenshot capture
 
-- Screen-capture permission flow.
-- Foreground capture service.
-- ImageReader screenshot capture.
-- Debug screenshot UI.
-- Error states.
-- Tests with fakes.
+- [x] Screen-capture permission flow.
+- [x] Foreground capture service.
+- [x] On-demand ImageReader screenshot capture.
+- [x] Debug screenshot UI and preview.
+- [x] Error states.
+- [x] Tests with fakes.
+- [ ] Physical-device manual verification of the real MediaProjection prompt and screenshot.
 
 ### Stage 4 — Overlay bubble and trigger abstraction
 

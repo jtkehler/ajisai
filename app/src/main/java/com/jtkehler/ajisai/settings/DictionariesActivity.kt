@@ -95,7 +95,21 @@ class DictionariesActivity : AppCompatActivity() {
 
     private fun restoreImportObservation() {
         val storedId = getPreferences(MODE_PRIVATE).getString(KEY_IMPORT_WORK_ID, null) ?: return
-        runCatching { UUID.fromString(storedId) }.getOrNull()?.let(::observeImport)
+        val workId = runCatching { UUID.fromString(storedId) }.getOrNull()
+        if (workId == null) {
+            getPreferences(MODE_PRIVATE).edit().remove(KEY_IMPORT_WORK_ID).apply()
+        } else {
+            lifecycleScope.launch {
+                val workInfo = withContext(Dispatchers.IO) {
+                    runCatching { workManager.getWorkInfoById(workId).get() }.getOrNull()
+                }
+                if (workInfo == null || workInfo.state.isFinished) {
+                    clearImportObservation(workId)
+                } else {
+                    observeImport(workId)
+                }
+            }
+        }
     }
 
     private fun observeImport(workId: UUID) {
@@ -103,6 +117,7 @@ class DictionariesActivity : AppCompatActivity() {
         observedWorkId = workId
         workManager.getWorkInfoByIdLiveData(workId).observe(this) { workInfo ->
             workInfo ?: return@observe
+            if (observedWorkId != workId) return@observe
             when (workInfo.state) {
                 WorkInfo.State.ENQUEUED, WorkInfo.State.BLOCKED -> showImportState(true, getString(R.string.dictionary_import_queued))
                 WorkInfo.State.RUNNING -> {
@@ -113,15 +128,30 @@ class DictionariesActivity : AppCompatActivity() {
                     val title = workInfo.outputData.getString(DictionaryImportWorker.KEY_IMPORTED_TITLE).orEmpty()
                     showImportState(false, getString(R.string.dictionary_import_succeeded, title))
                     renderDictionaries()
+                    clearImportObservation(workId)
                 }
-                WorkInfo.State.FAILED -> showImportState(
-                    false,
-                    workInfo.outputData.getString(DictionaryImportWorker.KEY_ERROR)
-                        ?: getString(R.string.dictionary_import_failed),
-                )
-                WorkInfo.State.CANCELLED -> showImportState(false, getString(R.string.dictionary_import_cancelled))
+                WorkInfo.State.FAILED -> {
+                    showImportState(
+                        false,
+                        workInfo.outputData.getString(DictionaryImportWorker.KEY_ERROR)
+                            ?: getString(R.string.dictionary_import_failed),
+                    )
+                    clearImportObservation(workId)
+                }
+                WorkInfo.State.CANCELLED -> {
+                    showImportState(false, getString(R.string.dictionary_import_cancelled))
+                    clearImportObservation(workId)
+                }
             }
         }
+    }
+
+    private fun clearImportObservation(workId: UUID) {
+        val preferences = getPreferences(MODE_PRIVATE)
+        if (preferences.getString(KEY_IMPORT_WORK_ID, null) == workId.toString()) {
+            preferences.edit().remove(KEY_IMPORT_WORK_ID).apply()
+        }
+        if (observedWorkId == workId) observedWorkId = null
     }
 
     private fun stageMessage(stageName: String?): String = when (

@@ -29,6 +29,74 @@ Before making changes, read:
 
 Follow the current plan unless the user explicitly changes it.
 
+## Reference implementation policy
+
+Before implementing or changing features that overlap with existing Japanese-learning Android apps, inspect relevant reference implementations and adapt the architecture deliberately rather than inventing from scratch.
+
+Primary references:
+
+* Hoshi Reader Android: `https://github.com/HuangAntimony/Hoshi-Reader-Android`
+* Chimahon: `https://github.com/sohilsayed/chimahon`
+
+### Required reference usage
+
+For Android hoshidicts integration, always cross-reference both:
+
+1. Hoshi Reader Android
+2. Chimahon
+
+Use them when working on:
+
+* hoshidicts native bridge setup
+* Gradle/CMake/native build wiring
+* Yomitan dictionary import
+* term/frequency/pitch dictionary handling
+* dictionary storage layout
+* imported dictionary metadata/config
+* enable/disable/delete/reorder dictionary behavior
+* lookup query rebuild lifecycle
+* lookup result mapping
+* dictionary media/style handling
+* dictionary-related tests
+
+For OCR functionality, always cross-reference Chimahon when working on:
+
+* OCR capture flow
+* OCR provider abstraction
+* Google Lens/OCR request flow
+* OCR result parsing
+* OCR text cleanup
+* OCR error handling
+* OCR debug logging
+* OCR UI/result editing flow
+
+### How to use references
+
+When implementing a feature with a reference implementation:
+
+1. Search the reference repos for comparable code before coding.
+2. Identify the relevant files/classes/functions.
+3. Compare the reference flow to Ajisai’s planned architecture in `PLANS.md`.
+4. Reuse proven patterns when they fit Ajisai’s MVP decisions.
+5. Keep Ajisai’s architecture boundaries intact even when the reference app is structured differently.
+6. Do not blindly copy code.
+7. Do not vendor source from the reference projects.
+8. Preserve license boundaries and attribution requirements.
+9. Prefer small, idiomatic Kotlin/Android adaptations over broad rewrites.
+
+### Expected review notes
+
+For any substantial dictionary, OCR, native bridge, or lookup change, include a short implementation note in the final response or commit summary:
+
+```text
+Reference check:
+- Hoshi Reader Android: <files/classes inspected or "not applicable">
+- Chimahon: <files/classes inspected or "not applicable">
+- Decision: <what was adapted, intentionally differed, or deferred>
+```
+
+If a reference implementation conflicts with `PLANS.md` or `AGENTS.md`, follow Ajisai’s project docs unless the user explicitly approves changing the plan.
+
 ## Current repository baseline
 
 This repository was restarted from a clean Android Studio-generated project.

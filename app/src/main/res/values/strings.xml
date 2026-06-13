@@ -30,4 +30,23 @@
     <string name="delete">Delete</string>
     <string name="delete_dictionary_title">Delete dictionary?</string>
     <string name="delete_dictionary_message">Delete %1$s and its imported data?</string>
+    <string name="capture_section_title">Screen capture debug</string>
+    <string name="capture_debug_explanation">Start Android screen capture, then request a single screenshot. Ajisai does not process frames continuously.</string>
+    <string name="start_capture">Start capture</string>
+    <string name="capture_screenshot">Capture screenshot</string>
+    <string name="stop_capture">Stop capture</string>
+    <string name="capture_preview_description">Latest captured screenshot</string>
+    <string name="capture_status_inactive">Screen capture is inactive.</string>
+    <string name="capture_status_starting">Starting screen capture...</string>
+    <string name="capture_status_active">Screen capture is active.</string>
+    <string name="capture_status_capturing">Capturing screenshot...</string>
+    <string name="capture_status_permission_denied">Screen capture permission was denied.</string>
+    <string name="capture_status_service_unavailable">The screen capture service is unavailable.</string>
+    <string name="capture_status_unavailable">Screen capture is not active or is unavailable.</string>
+    <string name="capture_status_no_frame">No screen frame was available. Try again.</string>
+    <string name="capture_status_failed">The screenshot could not be captured.</string>
+    <string name="capture_notification_channel">Screen capture</string>
+    <string name="capture_notification_channel_description">Shows when Ajisai screen capture is active.</string>
+    <string name="capture_notification_title">Ajisai screen capture active</string>
+    <string name="capture_notification_text">Ajisai can capture screenshots on request.</string>
 </resources>

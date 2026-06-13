@@ -6,4 +6,5 @@
     <color name="hydrangea_blue_dark">#FF315F9E</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="capture_preview_background">#FF17151F</color>
 </resources>
