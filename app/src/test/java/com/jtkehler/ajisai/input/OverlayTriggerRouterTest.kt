@@ -1,6 +1,10 @@
 package com.jtkehler.ajisai.input
 
 import com.jtkehler.ajisai.ocrbox.OcrBoxEditorController
+import com.jtkehler.ajisai.ocr.OcrRunState
+import com.jtkehler.ajisai.ocr.OcrRunner
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -62,6 +66,23 @@ class OverlayTriggerRouterTest {
         assertEquals(1, editor.showRequests)
     }
 
+    @Test
+    fun runOcrActionStartsFakeRunner() {
+        val runner = FakeOcrRunner()
+        val router = OverlayTriggerRouter(
+            OverlayActionCallbacks(
+                toggleOverlay = {},
+                runOcr = runner::run,
+                configureOcrBox = {},
+                closeOverlay = {},
+            ),
+        )
+
+        router.route(OverlayAction.RunOcr)
+
+        assertEquals(1, runner.runRequests)
+    }
+
     private class FakeEditorController : OcrBoxEditorController {
         override val isShowing: Boolean = false
         var showRequests = 0
@@ -72,5 +93,15 @@ class OverlayTriggerRouterTest {
         }
 
         override fun dismiss(notifyClosed: Boolean) = Unit
+    }
+
+    private class FakeOcrRunner : OcrRunner {
+        override val state: StateFlow<OcrRunState> = MutableStateFlow(OcrRunState.Idle)
+        var runRequests = 0
+
+        override fun run() { runRequests += 1 }
+        override fun retry() = run()
+        override fun updateText(text: String) = Unit
+        override fun clear() = Unit
     }
 }

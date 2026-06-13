@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/overlay_ocr_result_panel"
+    android:layout_width="@dimen/overlay_ocr_result_width"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_overlay_panel"
+    android:orientation="vertical"
+    android:padding="10dp">
+
+    <TextView
+        android:id="@+id/overlay_ocr_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+    <ProgressBar
+        android:id="@+id/overlay_ocr_progress"
+        style="?android:attr/progressBarStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="8dp"
+        android:indeterminateTint="@color/hydrangea_blue" />
+
+    <TextView
+        android:id="@+id/overlay_ocr_error"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textColor="#FFFFB4AB"
+        android:textSize="14sp"
+        android:visibility="gone" />
+
+    <EditText
+        android:id="@+id/overlay_ocr_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:backgroundTint="@color/hydrangea_blue"
+        android:gravity="top|start"
+        android:inputType="textMultiLine|textNoSuggestions"
+        android:minHeight="96dp"
+        android:padding="8dp"
+        android:textColor="@color/white"
+        android:textColorHint="#FFAAAAAA"
+        android:textSize="18sp"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/overlay_ocr_actions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/overlay_ocr_retry"
+            style="@style/OverlayCompactActionText"
+            android:text="@string/ocr_retry" />
+
+        <TextView
+            android:id="@+id/overlay_ocr_copy"
+            style="@style/OverlayCompactActionText"
+            android:text="@string/ocr_copy"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/overlay_ocr_clear_close"
+            style="@style/OverlayCompactActionText"
+            android:text="@string/ocr_clear_close" />
+    </LinearLayout>
+
+</LinearLayout>

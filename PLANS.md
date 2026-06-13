@@ -801,14 +801,14 @@ Mine:
 
 ### Stage 6 — Google Lens OCR
 
-- OcrEngine interface.
-- GoogleLensOcrEngine.
-- Lens transport/parser/preprocessor/postprocessor.
-- OCR result overlay.
-- Editable sentence.
-- Retry/error UI.
-- Debug saving.
-- Fake OCR tests.
+- [x] Extend the provider-neutral `OcrEngine` boundary and typed OCR errors/results.
+- [x] Add `GoogleLensOcrEngine` behind isolated Lens config, request, transport, parser, image preprocessing, text postprocessing, and debug logging components.
+- [x] Coordinate one fresh on-demand screenshot, saved OCR-box crop, timeout, OCR execution, and captured-frame timestamp without using stale `latestFrame`.
+- [x] Replace the Stage 5 debug crop action with Capturing/Recognizing/success/error overlay states.
+- [x] Show editable OCR text with Retry, Copy, and Clear/Close actions.
+- [x] Save the OCR crop and raw Lens response only when debug artifact saving is enabled.
+- [x] Add fake OCR/Lens transport tests, protocol/preprocessing/postprocessing tests, runner tests, overlay routing/UI tests, and Stage 6 manual checks.
+- [x] Run `./gradlew clean test assembleDebug`, `./scripts/e2e.sh`, and `./scripts/e2e-real-jmdict.sh`.
 
 ### Stage 7 — hoshidicts lookup
 

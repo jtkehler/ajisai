@@ -11,7 +11,30 @@ data class OcrOptions(
 /** Text returned by an OCR provider. */
 data class OcrResult(
     val text: String,
+    val lines: List<String> = emptyList(),
+    val providerName: String? = null,
+    val debugArtifacts: OcrDebugArtifacts = OcrDebugArtifacts(),
 )
+
+data class OcrDebugArtifacts(
+    val cropPath: String? = null,
+    val rawResponsePath: String? = null,
+)
+
+enum class OcrErrorType {
+    PREPROCESSING,
+    NETWORK,
+    HTTP,
+    PARSE,
+    NO_TEXT,
+}
+
+class OcrException(
+    val type: OcrErrorType,
+    message: String,
+    cause: Throwable? = null,
+    val httpStatusCode: Int? = null,
+) : Exception(message, cause)
 
 /** Boundary for OCR providers such as the planned Google Lens implementation. */
 interface OcrEngine {
