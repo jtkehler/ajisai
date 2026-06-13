@@ -1,15 +1,12 @@
 package com.jtkehler.ajisai.input
 
-/** User actions that input sources may send to the overlay workflow. */
-enum class OverlayTriggerAction {
-    TOGGLE_OVERLAY,
-    RUN_OCR,
-    MINE,
-}
-
-/** Boundary for floating-bubble and future hardware input sources. */
+/** Boundary for sources that emit overlay actions without executing feature logic. */
 interface OverlayTriggerSource {
-    fun start(onTrigger: (OverlayTriggerAction) -> Unit)
+    fun start()
 
     fun stop()
 }
+
+// TODO(Stage later): AccessibilityVolumeTriggerSource.
+// TODO(Stage later): QuickSettingsTriggerSource.
+// TODO(Stage later): GamepadTriggerSource.

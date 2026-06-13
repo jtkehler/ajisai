@@ -49,4 +49,23 @@
     <string name="capture_notification_channel_description">Shows when Ajisai screen capture is active.</string>
     <string name="capture_notification_title">Ajisai screen capture active</string>
     <string name="capture_notification_text">Ajisai can capture screenshots on request.</string>
+    <string name="overlay_section_title">Overlay debug</string>
+    <string name="overlay_debug_explanation">Show a compact movable bubble over other apps. OCR and OCR box actions are placeholders in this stage.</string>
+    <string name="overlay_permission_missing">Overlay permission: missing</string>
+    <string name="overlay_permission_granted">Overlay permission: granted</string>
+    <string name="overlay_service_stopped">Overlay service: stopped</string>
+    <string name="overlay_service_running">Overlay service: running</string>
+    <string name="overlay_error_permission_missing">Overlay permission is required before starting.</string>
+    <string name="overlay_error_service_unavailable">The overlay service is unavailable.</string>
+    <string name="request_overlay_permission">Grant overlay permission</string>
+    <string name="start_overlay">Start overlay</string>
+    <string name="stop_overlay">Stop overlay</string>
+    <string name="overlay_bubble_description">Ajisai overlay bubble</string>
+    <string name="overlay_bubble_label">あ</string>
+    <string name="overlay_action_ocr">OCR</string>
+    <string name="overlay_action_configure">Configure OCR Box</string>
+    <string name="overlay_action_close">Close / Hide Overlay</string>
+    <string name="overlay_ocr_placeholder">OCR will be implemented in a later stage.</string>
+    <string name="overlay_configure_placeholder">OCR box configuration will be implemented in Stage 5.</string>
+    <string name="overlay_panel_failed">The overlay panel could not be opened.</string>
 </resources>

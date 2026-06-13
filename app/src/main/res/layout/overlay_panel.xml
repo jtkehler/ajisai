@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/overlay_panel"
+    android:layout_width="@dimen/overlay_panel_width"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_overlay_panel"
+    android:orientation="vertical"
+    android:padding="6dp">
+
+    <TextView
+        android:id="@+id/overlay_ocr_action"
+        style="@style/OverlayActionText"
+        android:text="@string/overlay_action_ocr" />
+
+    <TextView
+        android:id="@+id/overlay_configure_action"
+        style="@style/OverlayActionText"
+        android:text="@string/overlay_action_configure" />
+
+    <TextView
+        android:id="@+id/overlay_close_action"
+        style="@style/OverlayActionText"
+        android:text="@string/overlay_action_close" />
+
+</LinearLayout>

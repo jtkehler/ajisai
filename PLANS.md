@@ -776,16 +776,18 @@ Mine:
 - [x] Debug screenshot UI and preview.
 - [x] Error states.
 - [x] Tests with fakes.
-- [ ] Physical-device manual verification of the real MediaProjection prompt and screenshot.
+- [x] Physical-device verification of the real MediaProjection prompt, notification, screenshot preview, and stop flow.
 
 ### Stage 4 — Overlay bubble and trigger abstraction
 
-- OverlayTriggerSource.
-- Floating bubble.
-- Overlay permission handling.
-- Overlay open/close.
-- Future trigger placeholders.
-- Tests.
+- [x] OverlayTriggerSource and action router boundaries.
+- [x] Lightweight movable floating bubble with persisted position.
+- [x] Overlay permission handling and visible app state.
+- [x] Compact overlay panel with placeholder OCR, configure, and close actions.
+- [x] Overlay open/close service flow kept separate from screen capture.
+- [x] Future trigger source TODO placeholders without implementations.
+- [x] Unit and instrumentation tests using fakes.
+- [x] Physical-device verification of permission grant/denial, drag/tap, panel actions, and close cleanup.
 
 ### Stage 5 — Static OCR box
 

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/overlay_bubble"
+    android:layout_width="@dimen/overlay_bubble_size"
+    android:layout_height="@dimen/overlay_bubble_size"
+    android:background="@drawable/bg_overlay_bubble"
+    android:contentDescription="@string/overlay_bubble_description"
+    android:gravity="center"
+    android:text="@string/overlay_bubble_label"
+    android:textColor="@color/white"
+    android:textSize="22sp"
+    android:textStyle="bold" />

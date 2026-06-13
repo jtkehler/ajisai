@@ -1,0 +1,135 @@
+package com.jtkehler.ajisai.overlay
+
+import android.app.Service
+import android.content.Context
+import android.content.Intent
+import android.content.res.Configuration
+import android.os.IBinder
+import android.provider.Settings
+import android.util.Log
+import android.view.WindowManager
+import android.widget.Toast
+import com.jtkehler.ajisai.R
+import com.jtkehler.ajisai.input.FloatingBubbleTriggerSource
+import com.jtkehler.ajisai.input.OverlayActionCallbacks
+import com.jtkehler.ajisai.input.OverlayTriggerRouter
+
+class OverlayService : Service() {
+    private var triggerSource: FloatingBubbleTriggerSource? = null
+    private var bubbleController: FloatingBubbleController? = null
+    private var panelController: OverlayPanelController? = null
+    private var preserveError = false
+
+    override fun onBind(intent: Intent?): IBinder? = null
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        when (intent?.action) {
+            ACTION_START -> startOverlay()
+            ACTION_STOP -> stopSelf()
+        }
+        return START_NOT_STICKY
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        bubbleController?.clampToCurrentBounds()
+    }
+
+    override fun onDestroy() {
+        panelController?.hide()
+        bubbleController?.hide()
+        triggerSource?.stop()
+        panelController = null
+        bubbleController = null
+        triggerSource = null
+        val permission = if (Settings.canDrawOverlays(this)) {
+            OverlayPermissionState.GRANTED
+        } else {
+            OverlayPermissionState.MISSING
+        }
+        if (!preserveError) {
+            OverlayRuntime.update(OverlayState(permission, OverlayServiceState.STOPPED))
+        }
+        super.onDestroy()
+    }
+
+    private fun startOverlay() {
+        if (bubbleController != null) return
+        if (!Settings.canDrawOverlays(this)) {
+            preserveError = true
+            OverlayRuntime.update(
+                OverlayState(
+                    permission = OverlayPermissionState.MISSING,
+                    service = OverlayServiceState.STOPPED,
+                    error = OverlayError.PERMISSION_MISSING,
+                ),
+            )
+            stopSelf()
+            return
+        }
+
+        val windowManager = getSystemService(WindowManager::class.java)
+        lateinit var panel: OverlayPanelController
+        val router = OverlayTriggerRouter(
+            OverlayActionCallbacks(
+                toggleOverlay = {
+                    if (!panel.toggle()) showPlaceholder(R.string.overlay_panel_failed)
+                },
+                runOcr = { showPlaceholder(R.string.overlay_ocr_placeholder) },
+                configureOcrBox = { showPlaceholder(R.string.overlay_configure_placeholder) },
+                closeOverlay = { stopSelf() },
+            ),
+        )
+        val source = FloatingBubbleTriggerSource(router)
+        panel = OverlayPanelController(this, windowManager, source)
+        val bubble = FloatingBubbleController(
+            context = this,
+            windowManager = windowManager,
+            triggerSource = source,
+            positionStore = BubblePositionStore(this),
+            onPositionChanged = panel::updateAnchor,
+        )
+        source.start()
+        if (!bubble.show()) {
+            source.stop()
+            preserveError = true
+            OverlayRuntime.update(
+                OverlayState(
+                    permission = OverlayPermissionState.GRANTED,
+                    service = OverlayServiceState.STOPPED,
+                    error = OverlayError.SERVICE_UNAVAILABLE,
+                ),
+            )
+            stopSelf()
+            return
+        }
+
+        triggerSource = source
+        panelController = panel
+        bubbleController = bubble
+        preserveError = false
+        OverlayRuntime.update(
+            OverlayState(OverlayPermissionState.GRANTED, OverlayServiceState.RUNNING),
+        )
+    }
+
+    private fun showPlaceholder(messageRes: Int) {
+        val message = getString(messageRes)
+        Log.i(LOG_TAG, message)
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    companion object {
+        private const val ACTION_START = "com.jtkehler.ajisai.overlay.START"
+        private const val ACTION_STOP = "com.jtkehler.ajisai.overlay.STOP"
+        private const val LOG_TAG = "AjisaiOverlay"
+
+        fun startIntent(context: Context) = Intent(context, OverlayService::class.java).apply {
+            action = ACTION_START
+        }
+
+        fun stopIntent(context: Context) = Intent(context, OverlayService::class.java).apply {
+            action = ACTION_STOP
+        }
+    }
+}

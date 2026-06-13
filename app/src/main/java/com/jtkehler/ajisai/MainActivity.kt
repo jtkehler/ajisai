@@ -20,6 +20,14 @@ import com.jtkehler.ajisai.capture.CapturePhase
 import com.jtkehler.ajisai.capture.CaptureState
 import com.jtkehler.ajisai.capture.CapturedFrame
 import com.jtkehler.ajisai.capture.toUiControls
+import com.jtkehler.ajisai.overlay.OverlayClient
+import com.jtkehler.ajisai.overlay.OverlayDependencies
+import com.jtkehler.ajisai.overlay.OverlayError
+import com.jtkehler.ajisai.overlay.OverlayPermissionLauncher
+import com.jtkehler.ajisai.overlay.OverlayPermissionState
+import com.jtkehler.ajisai.overlay.OverlayServiceState
+import com.jtkehler.ajisai.overlay.OverlayState
+import com.jtkehler.ajisai.overlay.toUiControls
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
@@ -31,6 +39,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var stopCaptureButton: MaterialButton
     private lateinit var captureProgress: ProgressBar
     private lateinit var capturePreview: ImageView
+    private lateinit var overlayClient: OverlayClient
+    private lateinit var overlayPermissionLauncher: OverlayPermissionLauncher
+    private lateinit var overlayPermissionStatus: TextView
+    private lateinit var overlayServiceStatus: TextView
+    private lateinit var requestOverlayPermissionButton: MaterialButton
+    private lateinit var startOverlayButton: MaterialButton
+    private lateinit var stopOverlayButton: MaterialButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,6 +59,15 @@ class MainActivity : AppCompatActivity() {
         stopCaptureButton = findViewById(R.id.stop_capture_button)
         captureProgress = findViewById(R.id.capture_progress)
         capturePreview = findViewById(R.id.capture_preview)
+        overlayClient = OverlayDependencies.client(this)
+        overlayPermissionLauncher = OverlayDependencies.permissionLauncher(this) {
+            overlayClient.refreshPermission()
+        }
+        overlayPermissionStatus = findViewById(R.id.overlay_permission_status)
+        overlayServiceStatus = findViewById(R.id.overlay_service_status)
+        requestOverlayPermissionButton = findViewById(R.id.request_overlay_permission_button)
+        startOverlayButton = findViewById(R.id.start_overlay_button)
+        stopOverlayButton = findViewById(R.id.stop_overlay_button)
 
         findViewById<MaterialButton>(R.id.settings_button).setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
@@ -51,13 +75,22 @@ class MainActivity : AppCompatActivity() {
         startCaptureButton.setOnClickListener { permissionLauncher.launch() }
         captureScreenshotButton.setOnClickListener { captureClient.captureFrame() }
         stopCaptureButton.setOnClickListener { captureClient.stopCapture() }
+        requestOverlayPermissionButton.setOnClickListener { overlayPermissionLauncher.launch() }
+        startOverlayButton.setOnClickListener { overlayClient.startOverlay() }
+        stopOverlayButton.setOnClickListener { overlayClient.stopOverlay() }
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch { captureClient.state.collect(::renderCaptureState) }
                 launch { captureClient.latestFrame.collect(::renderCapturedFrame) }
+                launch { overlayClient.state.collect(::renderOverlayState) }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (::overlayClient.isInitialized) overlayClient.refreshPermission()
     }
 
     private fun onCapturePermissionResult(result: CapturePermissionResult) {
@@ -91,6 +124,30 @@ class MainActivity : AppCompatActivity() {
         }
         capturePreview.setImageBitmap(frame.bitmap)
         capturePreview.visibility = View.VISIBLE
+    }
+
+    private fun renderOverlayState(state: OverlayState) {
+        val controls = state.toUiControls()
+        requestOverlayPermissionButton.isEnabled = controls.requestPermissionEnabled
+        startOverlayButton.isEnabled = controls.startEnabled
+        stopOverlayButton.isEnabled = controls.stopEnabled
+        overlayPermissionStatus.setText(
+            when (state.permission) {
+                OverlayPermissionState.MISSING -> R.string.overlay_permission_missing
+                OverlayPermissionState.GRANTED -> R.string.overlay_permission_granted
+            },
+        )
+        overlayServiceStatus.setText(
+            state.error?.let {
+                when (it) {
+                    OverlayError.PERMISSION_MISSING -> R.string.overlay_error_permission_missing
+                    OverlayError.SERVICE_UNAVAILABLE -> R.string.overlay_error_service_unavailable
+                }
+            } ?: when (state.service) {
+                OverlayServiceState.STOPPED -> R.string.overlay_service_stopped
+                OverlayServiceState.RUNNING -> R.string.overlay_service_running
+            },
+        )
     }
 
     private fun CaptureState.statusText(): Int = error?.let {
