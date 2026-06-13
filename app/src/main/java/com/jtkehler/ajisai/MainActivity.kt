@@ -28,6 +28,10 @@ import com.jtkehler.ajisai.overlay.OverlayPermissionState
 import com.jtkehler.ajisai.overlay.OverlayServiceState
 import com.jtkehler.ajisai.overlay.OverlayState
 import com.jtkehler.ajisai.overlay.toUiControls
+import com.jtkehler.ajisai.ocrbox.OcrBoxDependencies
+import com.jtkehler.ajisai.ocrbox.OcrBoxProfile
+import com.jtkehler.ajisai.ocrbox.OcrBoxRepository
+import com.jtkehler.ajisai.ocrbox.OcrFrameCropper
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
@@ -39,6 +43,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var stopCaptureButton: MaterialButton
     private lateinit var captureProgress: ProgressBar
     private lateinit var capturePreview: ImageView
+    private lateinit var ocrBoxRepository: OcrBoxRepository
+    private lateinit var ocrFrameCropper: OcrFrameCropper
+    private lateinit var ocrBoxCoordinates: TextView
+    private lateinit var resetOcrBoxButton: MaterialButton
+    private lateinit var previewOcrCropButton: MaterialButton
+    private lateinit var ocrCropPreview: ImageView
+    private var ocrCropPreviewBitmap: android.graphics.Bitmap? = null
     private lateinit var overlayClient: OverlayClient
     private lateinit var overlayPermissionLauncher: OverlayPermissionLauncher
     private lateinit var overlayPermissionStatus: TextView
@@ -59,6 +70,12 @@ class MainActivity : AppCompatActivity() {
         stopCaptureButton = findViewById(R.id.stop_capture_button)
         captureProgress = findViewById(R.id.capture_progress)
         capturePreview = findViewById(R.id.capture_preview)
+        ocrBoxRepository = OcrBoxDependencies.repository(this)
+        ocrFrameCropper = OcrBoxDependencies.cropper()
+        ocrBoxCoordinates = findViewById(R.id.ocr_box_coordinates)
+        resetOcrBoxButton = findViewById(R.id.reset_ocr_box_button)
+        previewOcrCropButton = findViewById(R.id.preview_ocr_crop_button)
+        ocrCropPreview = findViewById(R.id.ocr_crop_preview)
         overlayClient = OverlayDependencies.client(this)
         overlayPermissionLauncher = OverlayDependencies.permissionLauncher(this) {
             overlayClient.refreshPermission()
@@ -75,6 +92,11 @@ class MainActivity : AppCompatActivity() {
         startCaptureButton.setOnClickListener { permissionLauncher.launch() }
         captureScreenshotButton.setOnClickListener { captureClient.captureFrame() }
         stopCaptureButton.setOnClickListener { captureClient.stopCapture() }
+        resetOcrBoxButton.setOnClickListener {
+            renderOcrBoxProfile(ocrBoxRepository.resetToDefault())
+            clearOcrCropPreview()
+        }
+        previewOcrCropButton.setOnClickListener { previewSavedOcrCrop() }
         requestOverlayPermissionButton.setOnClickListener { overlayPermissionLauncher.launch() }
         startOverlayButton.setOnClickListener { overlayClient.startOverlay() }
         stopOverlayButton.setOnClickListener { overlayClient.stopOverlay() }
@@ -86,11 +108,25 @@ class MainActivity : AppCompatActivity() {
                 launch { overlayClient.state.collect(::renderOverlayState) }
             }
         }
+        renderOcrBoxProfile(ocrBoxRepository.getActiveProfile())
     }
 
     override fun onResume() {
         super.onResume()
         if (::overlayClient.isInitialized) overlayClient.refreshPermission()
+        if (::ocrBoxRepository.isInitialized) renderOcrBoxProfile(ocrBoxRepository.getActiveProfile())
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus && ::ocrBoxRepository.isInitialized) {
+            renderOcrBoxProfile(ocrBoxRepository.getActiveProfile())
+        }
+    }
+
+    override fun onDestroy() {
+        clearOcrCropPreview()
+        super.onDestroy()
     }
 
     private fun onCapturePermissionResult(result: CapturePermissionResult) {
@@ -120,10 +156,41 @@ class MainActivity : AppCompatActivity() {
         if (frame == null) {
             capturePreview.setImageDrawable(null)
             capturePreview.visibility = View.GONE
+            previewOcrCropButton.isEnabled = false
+            clearOcrCropPreview()
             return
         }
         capturePreview.setImageBitmap(frame.bitmap)
         capturePreview.visibility = View.VISIBLE
+        previewOcrCropButton.isEnabled = true
+    }
+
+    private fun renderOcrBoxProfile(profile: OcrBoxProfile) {
+        val rect = profile.normalizedRect
+        ocrBoxCoordinates.text = getString(
+            R.string.ocr_box_coordinates,
+            rect.left,
+            rect.top,
+            rect.right,
+            rect.bottom,
+        )
+    }
+
+    private fun previewSavedOcrCrop() {
+        val frame = captureClient.latestFrame.value ?: return
+        val crop = ocrFrameCropper.crop(frame, ocrBoxRepository.getActiveProfile()) ?: return
+        clearOcrCropPreview()
+        ocrCropPreviewBitmap = crop
+        ocrCropPreview.setImageBitmap(crop)
+        ocrCropPreview.visibility = View.VISIBLE
+    }
+
+    private fun clearOcrCropPreview() {
+        if (!::ocrCropPreview.isInitialized) return
+        ocrCropPreview.setImageDrawable(null)
+        ocrCropPreview.visibility = View.GONE
+        ocrCropPreviewBitmap?.takeUnless { it.isRecycled }?.recycle()
+        ocrCropPreviewBitmap = null
     }
 
     private fun renderOverlayState(state: OverlayState) {

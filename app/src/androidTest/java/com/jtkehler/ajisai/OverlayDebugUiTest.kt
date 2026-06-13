@@ -57,7 +57,7 @@ class OverlayDebugUiTest {
             .check(matches(withText(R.string.overlay_permission_missing)))
         onView(withId(R.id.start_overlay_button)).check(matches(not(isEnabled())))
 
-        onView(withId(R.id.request_overlay_permission_button)).perform(click())
+        onView(withId(R.id.request_overlay_permission_button)).perform(scrollTo(), click())
 
         onView(withId(R.id.overlay_permission_status))
             .check(matches(withText(R.string.overlay_permission_granted)))
@@ -72,7 +72,10 @@ class OverlayDebugUiTest {
         onView(withId(R.id.start_overlay_button)).perform(scrollTo(), click())
         onView(withId(R.id.overlay_service_status))
             .check(matches(withText(R.string.overlay_service_running)))
-        onView(withId(R.id.stop_overlay_button)).check(matches(isEnabled())).perform(click())
+        onView(withId(R.id.stop_overlay_button))
+            .perform(scrollTo())
+            .check(matches(isEnabled()))
+            .perform(click())
         onView(withId(R.id.overlay_service_status))
             .check(matches(withText(R.string.overlay_service_stopped)))
         assertEquals(1, fakeClient.startRequests)

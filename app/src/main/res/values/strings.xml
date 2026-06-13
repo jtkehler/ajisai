@@ -49,8 +49,14 @@
     <string name="capture_notification_channel_description">Shows when Ajisai screen capture is active.</string>
     <string name="capture_notification_title">Ajisai screen capture active</string>
     <string name="capture_notification_text">Ajisai can capture screenshots on request.</string>
+    <string name="ocr_box_section_title">Static OCR box debug</string>
+    <string name="ocr_box_coordinates">Normalized box: L %1$.3f, T %2$.3f, R %3$.3f, B %4$.3f</string>
+    <string name="ocr_box_coordinates_default">Normalized box: L 0.080, T 0.620, R 0.920, B 0.900</string>
+    <string name="reset_ocr_box">Reset OCR box</string>
+    <string name="preview_ocr_crop">Preview saved box crop</string>
+    <string name="ocr_crop_preview_description">Preview cropped using the saved OCR box</string>
     <string name="overlay_section_title">Overlay debug</string>
-    <string name="overlay_debug_explanation">Show a compact movable bubble over other apps. OCR and OCR box actions are placeholders in this stage.</string>
+    <string name="overlay_debug_explanation">Show a compact movable bubble over other apps. Configure a persistent OCR box or test-crop the latest captured screenshot; OCR is not implemented yet.</string>
     <string name="overlay_permission_missing">Overlay permission: missing</string>
     <string name="overlay_permission_granted">Overlay permission: granted</string>
     <string name="overlay_service_stopped">Overlay service: stopped</string>
@@ -66,6 +72,15 @@
     <string name="overlay_action_configure">Configure OCR Box</string>
     <string name="overlay_action_close">Close / Hide Overlay</string>
     <string name="overlay_ocr_placeholder">OCR will be implemented in a later stage.</string>
-    <string name="overlay_configure_placeholder">OCR box configuration will be implemented in Stage 5.</string>
     <string name="overlay_panel_failed">The overlay panel could not be opened.</string>
+    <string name="ocr_box_editor_description">Editable OCR crop rectangle</string>
+    <string name="ocr_box_editor_hint">Drag inside to move. Drag handles to resize.</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="ocr_box_editor_failed">The OCR box editor could not be opened.</string>
+    <string name="ocr_box_save_failed">The OCR box could not be saved.</string>
+    <string name="overlay_bubble_restore_failed">The overlay bubble could not be restored.</string>
+    <string name="overlay_debug_crop_no_frame">Capture a screenshot before testing the OCR crop.</string>
+    <string name="overlay_debug_crop_failed">The saved OCR box could not crop the latest screenshot.</string>
+    <string name="overlay_debug_crop_created">OCR is not running. Debug crop created: %1$d × %2$d px.</string>
 </resources>

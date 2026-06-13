@@ -10,14 +10,19 @@ import android.util.Log
 import android.view.WindowManager
 import android.widget.Toast
 import com.jtkehler.ajisai.R
+import com.jtkehler.ajisai.capture.CaptureDependencies
 import com.jtkehler.ajisai.input.FloatingBubbleTriggerSource
 import com.jtkehler.ajisai.input.OverlayActionCallbacks
 import com.jtkehler.ajisai.input.OverlayTriggerRouter
+import com.jtkehler.ajisai.ocrbox.AndroidOcrBoxEditorController
+import com.jtkehler.ajisai.ocrbox.OcrBoxDependencies
+import com.jtkehler.ajisai.ocrbox.OcrBoxEditorController
 
 class OverlayService : Service() {
     private var triggerSource: FloatingBubbleTriggerSource? = null
     private var bubbleController: FloatingBubbleController? = null
     private var panelController: OverlayPanelController? = null
+    private var ocrBoxEditorController: OcrBoxEditorController? = null
     private var preserveError = false
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -36,9 +41,11 @@ class OverlayService : Service() {
     }
 
     override fun onDestroy() {
+        ocrBoxEditorController?.dismiss(notifyClosed = false)
         panelController?.hide()
         bubbleController?.hide()
         triggerSource?.stop()
+        ocrBoxEditorController = null
         panelController = null
         bubbleController = null
         triggerSource = null
@@ -70,24 +77,42 @@ class OverlayService : Service() {
 
         val windowManager = getSystemService(WindowManager::class.java)
         lateinit var panel: OverlayPanelController
+        lateinit var bubble: FloatingBubbleController
+        lateinit var editor: OcrBoxEditorController
         val router = OverlayTriggerRouter(
             OverlayActionCallbacks(
                 toggleOverlay = {
                     if (!panel.toggle()) showPlaceholder(R.string.overlay_panel_failed)
                 },
-                runOcr = { showPlaceholder(R.string.overlay_ocr_placeholder) },
-                configureOcrBox = { showPlaceholder(R.string.overlay_configure_placeholder) },
+                runOcr = ::runDebugCrop,
+                configureOcrBox = {
+                    panel.hide()
+                    bubble.hide()
+                    if (!editor.show()) {
+                        bubble.show()
+                        showPlaceholder(R.string.ocr_box_editor_failed)
+                    }
+                },
                 closeOverlay = { stopSelf() },
             ),
         )
         val source = FloatingBubbleTriggerSource(router)
         panel = OverlayPanelController(this, windowManager, source)
-        val bubble = FloatingBubbleController(
+        bubble = FloatingBubbleController(
             context = this,
             windowManager = windowManager,
             triggerSource = source,
             positionStore = BubblePositionStore(this),
             onPositionChanged = panel::updateAnchor,
+        )
+        editor = AndroidOcrBoxEditorController(
+            context = this,
+            windowManager = windowManager,
+            repository = OcrBoxDependencies.repository(this),
+            onClosed = {
+                if (!bubble.show()) showPlaceholder(R.string.overlay_bubble_restore_failed)
+            },
+            onSaveFailed = { showPlaceholder(R.string.ocr_box_save_failed) },
         )
         source.start()
         if (!bubble.show()) {
@@ -107,6 +132,7 @@ class OverlayService : Service() {
         triggerSource = source
         panelController = panel
         bubbleController = bubble
+        ocrBoxEditorController = editor
         preserveError = false
         OverlayRuntime.update(
             OverlayState(OverlayPermissionState.GRANTED, OverlayServiceState.RUNNING),
@@ -117,6 +143,24 @@ class OverlayService : Service() {
         val message = getString(messageRes)
         Log.i(LOG_TAG, message)
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun runDebugCrop() {
+        val frame = CaptureDependencies.client(this).latestFrame.value
+        if (frame == null) {
+            showPlaceholder(R.string.overlay_debug_crop_no_frame)
+            return
+        }
+        val repository = OcrBoxDependencies.repository(this)
+        val crop = OcrBoxDependencies.cropper().crop(frame, repository.getActiveProfile())
+        if (crop == null) {
+            showPlaceholder(R.string.overlay_debug_crop_failed)
+            return
+        }
+        val message = getString(R.string.overlay_debug_crop_created, crop.width, crop.height)
+        Log.i(LOG_TAG, message)
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        crop.recycle()
     }
 
     companion object {

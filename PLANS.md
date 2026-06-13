@@ -791,12 +791,13 @@ Mine:
 
 ### Stage 5 — Static OCR box
 
-- One persistent OCR box.
-- Normalized coordinates.
-- Overlay box editor.
-- Crop via saved box.
-- Multi-box-ready data model.
-- Tests.
+- [x] One persistent OCR box.
+- [x] Persist normalized coordinates across restarts and resolution changes.
+- [x] Overlay box editor with move, edge/corner resize, Save, and Cancel.
+- [x] Crop captured screenshots via the saved box.
+- [x] Multi-box-ready profile and repository data model.
+- [x] Unit and device tests for geometry, persistence, routing, and bitmap crop content.
+- [x] Stage 5 manual test notes.
 
 ### Stage 6 — Google Lens OCR
 

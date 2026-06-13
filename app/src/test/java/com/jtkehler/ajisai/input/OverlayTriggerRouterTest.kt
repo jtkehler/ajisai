@@ -1,5 +1,6 @@
 package com.jtkehler.ajisai.input
 
+import com.jtkehler.ajisai.ocrbox.OcrBoxEditorController
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -42,5 +43,34 @@ class OverlayTriggerRouterTest {
         source.emit(OverlayAction.ToggleOverlay)
 
         assertEquals(1, toggleCount)
+    }
+
+    @Test
+    fun configureActionOpensEditorController() {
+        val editor = FakeEditorController()
+        val router = OverlayTriggerRouter(
+            OverlayActionCallbacks(
+                toggleOverlay = {},
+                runOcr = {},
+                configureOcrBox = { editor.show() },
+                closeOverlay = {},
+            ),
+        )
+
+        router.route(OverlayAction.ConfigureOcrBox)
+
+        assertEquals(1, editor.showRequests)
+    }
+
+    private class FakeEditorController : OcrBoxEditorController {
+        override val isShowing: Boolean = false
+        var showRequests = 0
+
+        override fun show(): Boolean {
+            showRequests += 1
+            return true
+        }
+
+        override fun dismiss(notifyClosed: Boolean) = Unit
     }
 }

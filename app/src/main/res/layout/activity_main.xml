@@ -104,6 +104,51 @@
             android:visibility="gone" />
 
         <TextView
+            android:id="@+id/ocr_box_section_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="@string/ocr_box_section_title"
+            android:textAppearance="?attr/textAppearanceHeadline6" />
+
+        <TextView
+            android:id="@+id/ocr_box_coordinates"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/ocr_box_coordinates_default"
+            android:textAppearance="?attr/textAppearanceBody2" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/reset_ocr_box_button"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:minHeight="48dp"
+            android:text="@string/reset_ocr_box" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/preview_ocr_crop_button"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:enabled="false"
+            android:minHeight="48dp"
+            android:text="@string/preview_ocr_crop" />
+
+        <ImageView
+            android:id="@+id/ocr_crop_preview"
+            android:layout_width="match_parent"
+            android:layout_height="160dp"
+            android:layout_marginTop="16dp"
+            android:background="@color/capture_preview_background"
+            android:contentDescription="@string/ocr_crop_preview_description"
+            android:scaleType="fitCenter"
+            android:visibility="gone" />
+
+        <TextView
             android:id="@+id/overlay_section_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
