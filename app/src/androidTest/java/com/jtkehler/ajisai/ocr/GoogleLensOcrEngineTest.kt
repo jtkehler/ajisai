@@ -73,6 +73,53 @@ class GoogleLensOcrEngineTest {
         bitmap.recycle()
     }
 
+    @Test
+    fun verticalMangaSampleDropsSmallKanaOnlyFuriganaBySizeThreshold() = runBlocking {
+        val response = responseWithLines(
+            lineWithGeometry("し", 0.90f, 0.30f, 0.025f, 0.18f),
+            lineWithGeometry("わたしの知らない", 0.82f, 0.42f, 0.080f, 0.65f),
+            lineWithGeometry("しゅうかん", 0.68f, 0.28f, 0.030f, 0.30f),
+            lineWithGeometry("一週間が", 0.59f, 0.35f, 0.090f, 0.42f),
+            lineWithGeometry("きょうしつ", 0.43f, 0.30f, 0.028f, 0.32f),
+            lineWithGeometry("教室にはあって", 0.34f, 0.42f, 0.080f, 0.58f),
+        )
+        val engine = GoogleLensOcrEngine(
+            preprocessor = FixedPreprocessor,
+            transport = FixedTransport(LensResponse(200, response)),
+        )
+        val bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
+
+        val result = engine.recognize(bitmap)
+
+        assertEquals(
+            "わたしの知らない一週間が教室にはあって",
+            result.text,
+        )
+        assertEquals(
+            listOf("わたしの知らない", "一週間が", "教室にはあって"),
+            result.lines.map(OcrTextLine::text),
+        )
+        bitmap.recycle()
+    }
+
+    @Test
+    fun horizontalLinesRemainNewlineSeparated() = runBlocking {
+        val response = responseWithLines(
+            lineWithGeometry("一行目", 0.5f, 0.20f, 0.6f, 0.10f),
+            lineWithGeometry("二行目", 0.5f, 0.35f, 0.6f, 0.10f),
+        )
+        val engine = GoogleLensOcrEngine(
+            preprocessor = FixedPreprocessor,
+            transport = FixedTransport(LensResponse(200, response)),
+        )
+        val bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
+
+        val result = engine.recognize(bitmap)
+
+        assertEquals("一行目\n二行目", result.text)
+        bitmap.recycle()
+    }
+
     private object FixedPreprocessor : OcrImagePreprocessor {
         override fun preprocess(image: Bitmap, region: android.graphics.Rect?) =
             ProcessedOcrImage(byteArrayOf(9), 1, 1)

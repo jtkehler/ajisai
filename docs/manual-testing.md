@@ -69,7 +69,7 @@ Use a physical Android device with network access. Normal automated tests use fa
 13. Stop screen capture, toggle the HUD on, and verify the panel reports that capture must be started instead of using a stale frame.
 14. Restart capture after a prior capture failure, toggle the HUD off and on, and verify the next fresh OCR attempt is allowed instead of immediately repeating the stale error.
 15. Disable network access or otherwise force a Lens request failure if practical. Verify a compact network or Lens error appears without crashing, then restore network access and toggle the HUD off/on to retry successfully.
-16. Test furigana-heavy horizontal game text and verify small aligned kana readings are not duplicated into the displayed sentence.
+16. Use `test-fixtures/ocr/vertical-manga-furigana.png` or comparable furigana-heavy game text and verify small kana readings are not duplicated into the displayed sentence. The fixture should read `わたしの知らない一週間が教室にはあって`.
 17. Test normal kana-only dialogue and verify the furigana filter does not delete it.
 18. Verify **Box** still opens the OCR box editor and returns to the normal HUD state after Save or Cancel. Verify **Set** opens Ajisai settings and **Hide** collapses the HUD without stopping the overlay service.
 19. Verify the Stage 3 capture preview/stop flow, Stage 4 bubble drag/toggle/service stop flow, and Stage 5 OCR box persistence/crop preview still work.

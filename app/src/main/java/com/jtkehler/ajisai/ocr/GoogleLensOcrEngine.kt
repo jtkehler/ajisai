@@ -12,6 +12,7 @@ class GoogleLensOcrEngine(
     private val transport: LensTransport = OkHttpLensTransport(),
     private val responseParser: LensResponseParser = LensResponseParser(),
     private val textPostProcessor: OcrTextPostProcessor = JapaneseOcrTextPostProcessor(),
+    private val textAssembler: JapaneseOcrTextAssembler = JapaneseOcrTextAssembler(),
     private val debugLogger: OcrDebugLogger = NoOpOcrDebugLogger,
 ) : OcrEngine {
     override suspend fun recognize(
@@ -46,7 +47,7 @@ class GoogleLensOcrEngine(
                 throw OcrException(OcrErrorType.NO_TEXT, "No text was found in the OCR box.")
             }
             return OcrResult(
-                text = lines.joinToString("\n", transform = OcrTextLine::text),
+                text = textAssembler.assemble(lines),
                 lines = lines,
                 providerName = PROVIDER_NAME,
                 debugArtifacts = OcrDebugArtifacts(cropPath, rawResponsePath),

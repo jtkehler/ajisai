@@ -817,7 +817,7 @@ Mine:
 - [x] Start exactly one fresh OCR attempt when the HUD is toggled on; cancel and clear transient OCR state when it is toggled off.
 - [x] Keep overlay windows non-focusable/non-touch-modal where practical so no result keyboard appears and game touches outside Ajisai surfaces pass through.
 - [x] Clear stale `ACTIVE` capture errors synchronously before sending a new one-shot capture request.
-- [x] Preserve provider-neutral OCR line geometry and conservatively remove small aligned horizontal furigana lines during Japanese OCR postprocessing.
+- [x] Preserve provider-neutral OCR line geometry and conservatively remove substantially smaller kana-only furigana lines for horizontal and vertical text.
 - [x] Add HUD toggle/cancellation, read-only result UI, stale capture error, Lens geometry, and furigana filtering tests.
 - [x] Update Stage 6.5 manual checks and preserve Stage 3-6 behavior without adding lookup, mining, audio, VAD, or continuous OCR.
 - [x] Run `./gradlew clean test assembleDebug`, `./scripts/e2e.sh`, and `./scripts/e2e-real-jmdict.sh`.

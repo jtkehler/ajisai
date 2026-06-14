@@ -34,40 +34,51 @@ class JapaneseOcrTextPostProcessor(
 }
 
 class FuriganaFilter(
-    private val maximumHeightRatio: Float = 0.75f,
-    private val minimumHorizontalOverlap: Float = 0.5f,
+    private val sizeThreshold: Float = 0.58f,
 ) {
-    fun filter(lines: List<OcrTextLine>): List<OcrTextLine> = lines.filterIndexed { index, candidate ->
-        val base = lines.getOrNull(index + 1)
-        !isFurigana(candidate, base)
+    fun filter(lines: List<OcrTextLine>): List<OcrTextLine> {
+        val referenceSize = referenceSize(lines) ?: return lines
+        return lines.filter { line ->
+            !isFurigana(line, referenceSize)
+        }
     }
 
-    private fun isFurigana(candidate: OcrTextLine, base: OcrTextLine?): Boolean {
-        if (base == null || candidate.text.containsKanji() || !candidate.text.containsKana()) return false
-        if (!base.text.containsKanji()) return false
-        if (candidate.writingDirection != OcrWritingDirection.HORIZONTAL ||
-            base.writingDirection != OcrWritingDirection.HORIZONTAL
-        ) {
-            return false
-        }
-        val candidateBox = candidate.boundingBox ?: return false
-        val baseBox = base.boundingBox ?: return false
-        if (candidateBox.height <= 0f || baseBox.height <= 0f ||
-            candidateBox.width <= 0f || baseBox.width <= 0f
-        ) {
-            return false
-        }
-        if (candidateBox.height >= baseBox.height * maximumHeightRatio) return false
+    private fun isFurigana(line: OcrTextLine, referenceSize: Float): Boolean {
+        if (line.text.containsKanji() || !line.text.containsKana()) return false
+        val fontSize = line.estimatedFontSize() ?: return false
+        return fontSize < referenceSize * sizeThreshold
+    }
 
-        val verticalDistance = baseBox.centerY - candidateBox.centerY
-        val minimumDistance = kotlin.math.abs(baseBox.height - candidateBox.height) / 2f
-        val maximumDistance = baseBox.height + candidateBox.height / 2f
-        if (verticalDistance <= minimumDistance || verticalDistance >= maximumDistance) return false
+    private fun referenceSize(lines: List<OcrTextLine>): Float? {
+        val japaneseLines = lines.mapNotNull { line ->
+            if (!line.text.containsJapanese()) return@mapNotNull null
+            line.estimatedFontSize()?.let { size -> line to size }
+        }
+        val preferred = japaneseLines.filter { (line, _) -> line.text.containsKanji() }
+        return (preferred.ifEmpty { japaneseLines })
+            .map { (_, size) -> size }
+            .medianOrNull()
+    }
 
-        val overlap = (minOf(candidateBox.right, baseBox.right) -
-            maxOf(candidateBox.left, baseBox.left)).coerceAtLeast(0f)
-        val overlapRatio = overlap / minOf(candidateBox.width, baseBox.width)
-        return overlapRatio >= minimumHorizontalOverlap
+    private fun OcrTextLine.estimatedFontSize(): Float? {
+        val box = boundingBox ?: return null
+        val size = when (writingDirection) {
+            OcrWritingDirection.HORIZONTAL -> box.height
+            OcrWritingDirection.VERTICAL -> box.width
+            OcrWritingDirection.UNKNOWN -> minOf(box.width, box.height)
+        }
+        return size.takeIf { it.isFinite() && it > 0f }
+    }
+
+    private fun List<Float>.medianOrNull(): Float? {
+        if (isEmpty()) return null
+        val sorted = sorted()
+        val middle = sorted.size / 2
+        return if (sorted.size % 2 == 1) {
+            sorted[middle]
+        } else {
+            (sorted[middle - 1] + sorted[middle]) / 2f
+        }
     }
 
     private fun String.containsKanji(): Boolean = any { character ->
@@ -81,4 +92,19 @@ class FuriganaFilter(
             character in '\u30a0'..'\u30ff' ||
             character in '\uff66'..'\uff9f'
     }
+
+    private fun String.containsJapanese(): Boolean = containsKana() || containsKanji()
+}
+
+class JapaneseOcrTextAssembler {
+    fun assemble(lines: List<OcrTextLine>): String = buildString {
+        lines.forEachIndexed { index, line ->
+            if (index > 0 && !lines[index - 1].isVerticalWith(line)) append('\n')
+            append(line.text)
+        }
+    }
+
+    private fun OcrTextLine.isVerticalWith(other: OcrTextLine): Boolean =
+        writingDirection == OcrWritingDirection.VERTICAL &&
+            other.writingDirection == OcrWritingDirection.VERTICAL
 }
