@@ -13,7 +13,7 @@ class OcrEngineDeviceTest {
     @Test
     fun fakeEngineReturnsConfiguredSuccessAndFailure() = runBlocking {
         val bitmap = Bitmap.createBitmap(3, 2, Bitmap.Config.ARGB_8888)
-        val expected = OcrResult("成功", listOf("成功"), "Fake")
+        val expected = OcrResult("成功", listOf(OcrTextLine("成功")), "Fake")
         val engine = FakeOcrEngine(result = expected)
 
         assertSame(expected, engine.recognize(bitmap))

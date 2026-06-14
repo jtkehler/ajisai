@@ -805,9 +805,21 @@ Mine:
 - [x] Add `GoogleLensOcrEngine` behind isolated Lens config, request, transport, parser, image preprocessing, text postprocessing, and debug logging components.
 - [x] Coordinate one fresh on-demand screenshot, saved OCR-box crop, timeout, OCR execution, and captured-frame timestamp without using stale `latestFrame`.
 - [x] Replace the Stage 5 debug crop action with Capturing/Recognizing/success/error overlay states.
-- [x] Show editable OCR text with Retry, Copy, and Clear/Close actions.
+- [x] Show OCR progress, result, and error states in the overlay (the initial editable/retry panel was replaced by the Stage 6.5 read-only HUD).
 - [x] Save the OCR crop and raw Lens response only when debug artifact saving is enabled.
 - [x] Add fake OCR/Lens transport tests, protocol/preprocessing/postprocessing tests, runner tests, overlay routing/UI tests, and Stage 6 manual checks.
+- [x] Run `./gradlew clean test assembleDebug`, `./scripts/e2e.sh`, and `./scripts/e2e-real-jmdict.sh`.
+
+### Stage 6.5 — Overlay HUD toggle and OCR cleanup
+
+- [x] Make the persistent floating bubble toggle a collapsed/shown game HUD instead of opening the menu-first OCR panel.
+- [x] Show compact top-corner OCR-box/settings/hide controls and a read-only bottom OCR text panel only while the HUD is shown.
+- [x] Start exactly one fresh OCR attempt when the HUD is toggled on; cancel and clear transient OCR state when it is toggled off.
+- [x] Keep overlay windows non-focusable/non-touch-modal where practical so no result keyboard appears and game touches outside Ajisai surfaces pass through.
+- [x] Clear stale `ACTIVE` capture errors synchronously before sending a new one-shot capture request.
+- [x] Preserve provider-neutral OCR line geometry and conservatively remove small aligned horizontal furigana lines during Japanese OCR postprocessing.
+- [x] Add HUD toggle/cancellation, read-only result UI, stale capture error, Lens geometry, and furigana filtering tests.
+- [x] Update Stage 6.5 manual checks and preserve Stage 3-6 behavior without adding lookup, mining, audio, VAD, or continuous OCR.
 - [x] Run `./gradlew clean test assembleDebug`, `./scripts/e2e.sh`, and `./scripts/e2e-real-jmdict.sh`.
 
 ### Stage 7 — hoshidicts lookup

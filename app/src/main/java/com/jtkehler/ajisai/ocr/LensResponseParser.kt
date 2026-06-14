@@ -1,7 +1,7 @@
 package com.jtkehler.ajisai.ocr
 
 data class ParsedLensResponse(
-    val lines: List<String>,
+    val lines: List<OcrTextLine>,
     val contentLanguage: String? = null,
 )
 
@@ -23,17 +23,46 @@ class LensResponseParser {
         }
     }
 
-    private fun parseParagraph(bytes: ByteArray): List<String> =
+    private fun parseParagraph(bytes: ByteArray): List<OcrTextLine> =
         ProtoReader(bytes).messages(2).mapNotNull(::parseLine)
 
-    private fun parseLine(bytes: ByteArray): String? {
-        val words = ProtoReader(bytes).messages(1).map { wordBytes ->
+    private fun parseLine(bytes: ByteArray): OcrTextLine? {
+        val lineReader = ProtoReader(bytes)
+        val words = lineReader.messages(1).map { wordBytes ->
             val word = ProtoReader(wordBytes)
             val text = word.strings(2).firstOrNull().orEmpty()
             val separator = word.strings(3).firstOrNull().orEmpty()
             text + separator
         }
-        return words.joinToString("").trim().takeIf(String::isNotBlank)
+        val text = words.joinToString("").trim().takeIf(String::isNotBlank) ?: return null
+        val boundingBox = lineReader.messages(2).firstOrNull()?.let(::parseGeometry)
+        return OcrTextLine(
+            text = text,
+            boundingBox = boundingBox,
+            writingDirection = boundingBox.inferWritingDirection(),
+        )
+    }
+
+    private fun parseGeometry(bytes: ByteArray): OcrBoundingBox? {
+        val box = ProtoReader(bytes).messages(1).firstOrNull() ?: return null
+        val reader = ProtoReader(box)
+        val centerX = reader.floats(1).firstOrNull() ?: return null
+        val centerY = reader.floats(2).firstOrNull() ?: return null
+        val width = reader.floats(3).firstOrNull() ?: return null
+        val height = reader.floats(4).firstOrNull() ?: return null
+        if (!centerX.isFinite() || !centerY.isFinite() || width <= 0f || height <= 0f) return null
+        return OcrBoundingBox(
+            left = centerX - width / 2f,
+            top = centerY - height / 2f,
+            right = centerX + width / 2f,
+            bottom = centerY + height / 2f,
+        )
+    }
+
+    private fun OcrBoundingBox?.inferWritingDirection(): OcrWritingDirection = when {
+        this == null || width <= 0f || height <= 0f -> OcrWritingDirection.UNKNOWN
+        width >= height -> OcrWritingDirection.HORIZONTAL
+        else -> OcrWritingDirection.VERTICAL
     }
 }
 
@@ -42,6 +71,8 @@ internal class ProtoReader(private val bytes: ByteArray) {
 
     fun strings(fieldNumber: Int): List<String> =
         lengthDelimited(fieldNumber).map(ByteArray::decodeToString)
+
+    fun floats(targetField: Int): List<Float> = fixed32(targetField).map(Float::fromBits)
 
     fun varints(targetField: Int): List<Long> {
         val values = mutableListOf<Long>()
@@ -62,6 +93,36 @@ internal class ProtoReader(private val bytes: ByteArray) {
                     offset = checkedOffset(length.nextOffset, length.value.toInt())
                 }
                 WIRE_FIXED_32 -> offset = checkedOffset(offset, 4)
+                else -> throw IllegalArgumentException("Unsupported protobuf wire type")
+            }
+        }
+        return values
+    }
+
+    private fun fixed32(targetField: Int): List<Int> {
+        val values = mutableListOf<Int>()
+        var offset = 0
+        while (offset < bytes.size) {
+            val tag = readVarint(offset)
+            offset = tag.nextOffset
+            val fieldNumber = (tag.value ushr 3).toInt()
+            when ((tag.value and 0x7).toInt()) {
+                WIRE_VARINT -> offset = readVarint(offset).nextOffset
+                WIRE_FIXED_64 -> offset = checkedOffset(offset, 8)
+                WIRE_LENGTH_DELIMITED -> {
+                    val length = readVarint(offset)
+                    offset = checkedOffset(length.nextOffset, length.value.toInt())
+                }
+                WIRE_FIXED_32 -> {
+                    val end = checkedOffset(offset, 4)
+                    if (fieldNumber == targetField) {
+                        values += (bytes[offset].toInt() and 0xff) or
+                            ((bytes[offset + 1].toInt() and 0xff) shl 8) or
+                            ((bytes[offset + 2].toInt() and 0xff) shl 16) or
+                            ((bytes[offset + 3].toInt() and 0xff) shl 24)
+                    }
+                    offset = end
+                }
                 else -> throw IllegalArgumentException("Unsupported protobuf wire type")
             }
         }

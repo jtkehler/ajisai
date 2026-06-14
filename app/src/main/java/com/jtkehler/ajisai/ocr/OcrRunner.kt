@@ -25,8 +25,6 @@ interface OcrRunner {
     val state: StateFlow<OcrRunState>
 
     fun run()
-    fun retry()
-    fun updateText(text: String)
     fun clear()
 }
 
@@ -46,13 +44,6 @@ class DefaultOcrRunner(
     override fun run() {
         runJob?.cancel()
         runJob = scope.launch { runOnce() }
-    }
-
-    override fun retry() = run()
-
-    override fun updateText(text: String) {
-        val success = mutableState.value as? OcrRunState.Success ?: return
-        mutableState.value = success.copy(text = text)
     }
 
     override fun clear() {

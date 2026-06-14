@@ -17,13 +17,14 @@ class OverlayTriggerRouterTest {
                 toggleOverlay = { routed += "toggle" },
                 runOcr = { routed += "ocr" },
                 configureOcrBox = { routed += "configure" },
+                openSettings = { routed += "settings" },
                 closeOverlay = { routed += "close" },
             ),
         )
 
         OverlayAction.entries.forEach(router::route)
 
-        assertEquals(listOf("toggle", "ocr", "configure", "close"), routed)
+        assertEquals(listOf("toggle", "ocr", "configure", "settings", "close"), routed)
     }
 
     @Test
@@ -35,6 +36,7 @@ class OverlayTriggerRouterTest {
                     toggleOverlay = { toggleCount += 1 },
                     runOcr = {},
                     configureOcrBox = {},
+                    openSettings = {},
                     closeOverlay = {},
                 ),
             ),
@@ -57,6 +59,7 @@ class OverlayTriggerRouterTest {
                 toggleOverlay = {},
                 runOcr = {},
                 configureOcrBox = { editor.show() },
+                openSettings = {},
                 closeOverlay = {},
             ),
         )
@@ -74,6 +77,7 @@ class OverlayTriggerRouterTest {
                 toggleOverlay = {},
                 runOcr = runner::run,
                 configureOcrBox = {},
+                openSettings = {},
                 closeOverlay = {},
             ),
         )
@@ -100,8 +104,6 @@ class OverlayTriggerRouterTest {
         var runRequests = 0
 
         override fun run() { runRequests += 1 }
-        override fun retry() = run()
-        override fun updateText(text: String) = Unit
         override fun clear() = Unit
     }
 }

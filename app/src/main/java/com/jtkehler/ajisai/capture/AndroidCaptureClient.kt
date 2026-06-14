@@ -28,6 +28,7 @@ internal object CaptureRuntime {
 
 internal class AndroidCaptureClient(
     private val context: Context,
+    private val serviceStarter: (Intent) -> Unit = { intent -> context.startService(intent) },
 ) : CaptureClient {
     override val state: StateFlow<CaptureState> = CaptureRuntime.state
     override val latestFrame: StateFlow<CapturedFrame?> = CaptureRuntime.latestFrame
@@ -48,7 +49,8 @@ internal class AndroidCaptureClient(
             reportError(CaptureError.CAPTURE_UNAVAILABLE)
             return
         }
-        runCatching { context.startService(CaptureService.captureIntent(context)) }
+        CaptureRuntime.updateState(CaptureState(CapturePhase.ACTIVE))
+        runCatching { serviceStarter(CaptureService.captureIntent(context)) }
             .onFailure { reportError(CaptureError.SERVICE_UNAVAILABLE) }
     }
 

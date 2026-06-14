@@ -16,6 +16,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,7 +40,7 @@ class OcrRunnerTest {
         val later = frame(30L, 12, 12)
         val capture = FakeCaptureClient(stale)
         val cropper = RecordingCropper()
-        val engine = FakeOcrEngine(OcrResult("結果", listOf("結果"), "Fake"))
+        val engine = FakeOcrEngine(OcrResult("結果", listOf(OcrTextLine("結果")), "Fake"))
         val runner = DefaultOcrRunner(
             scope,
             capture,
@@ -160,6 +161,47 @@ class OcrRunnerTest {
         assertEquals(1, timeoutCapture.captureRequests)
         timeoutScope.cancel()
         stale.bitmap.recycle()
+    }
+
+    @Test
+    fun clearCancelsInFlightRecognitionAndReturnsToIdle() = runBlocking {
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+        val capture = FakeCaptureClient(null)
+        val entered = CompletableDeferred<Unit>()
+        val cancelled = CompletableDeferred<Unit>()
+        val engine = object : OcrEngine {
+            override suspend fun recognize(
+                image: Bitmap,
+                region: android.graphics.Rect?,
+                options: OcrOptions,
+            ): OcrResult {
+                entered.complete(Unit)
+                try {
+                    awaitCancellation()
+                } finally {
+                    cancelled.complete(Unit)
+                }
+            }
+        }
+        val runner = DefaultOcrRunner(
+            scope,
+            capture,
+            FakeRepository,
+            RecordingCropper(),
+            engine,
+            captureTimeoutMs = 1_000,
+        )
+        val fresh = frame(90L, 5, 5)
+
+        runner.run()
+        capture.emit(fresh)
+        withTimeout(1_000) { entered.await() }
+        runner.clear()
+
+        withTimeout(1_000) { cancelled.await() }
+        assertEquals(OcrRunState.Idle, runner.state.value)
+        scope.cancel()
+        fresh.bitmap.recycle()
     }
 
     private class FakeCaptureClient(initialFrame: CapturedFrame?) : CaptureClient {

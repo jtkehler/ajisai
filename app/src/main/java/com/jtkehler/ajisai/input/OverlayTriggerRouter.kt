@@ -4,6 +4,7 @@ data class OverlayActionCallbacks(
     val toggleOverlay: () -> Unit,
     val runOcr: () -> Unit,
     val configureOcrBox: () -> Unit,
+    val openSettings: () -> Unit,
     val closeOverlay: () -> Unit,
 )
 
@@ -16,6 +17,7 @@ class OverlayTriggerRouter(
             OverlayAction.ToggleOverlay -> callbacks.toggleOverlay()
             OverlayAction.RunOcr -> callbacks.runOcr()
             OverlayAction.ConfigureOcrBox -> callbacks.configureOcrBox()
+            OverlayAction.OpenSettings -> callbacks.openSettings()
             OverlayAction.CloseOverlay -> callbacks.closeOverlay()
         }
     }

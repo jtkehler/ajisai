@@ -13,7 +13,7 @@ sealed interface OcrRunState {
         val text: String,
         val capturedAtElapsedRealtimeNanos: Long,
         val providerName: String? = null,
-        val lines: List<String> = emptyList(),
+        val lines: List<OcrTextLine> = emptyList(),
         val debugArtifacts: OcrDebugArtifacts = OcrDebugArtifacts(),
     ) : OcrRunState
 

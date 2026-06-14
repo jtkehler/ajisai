@@ -46,7 +46,7 @@ class GoogleLensOcrEngine(
                 throw OcrException(OcrErrorType.NO_TEXT, "No text was found in the OCR box.")
             }
             return OcrResult(
-                text = lines.joinToString("\n"),
+                text = lines.joinToString("\n", transform = OcrTextLine::text),
                 lines = lines,
                 providerName = PROVIDER_NAME,
                 debugArtifacts = OcrDebugArtifacts(cropPath, rawResponsePath),

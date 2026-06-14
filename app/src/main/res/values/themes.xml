@@ -33,4 +33,15 @@
         <item name="android:textColor">@color/white</item>
         <item name="android:textSize">13sp</item>
     </style>
+
+    <style name="OverlayQuickActionText" parent="@android:style/Widget.TextView">
+        <item name="android:layout_width">48dp</item>
+        <item name="android:layout_height">40dp</item>
+        <item name="android:background">@drawable/bg_overlay_action</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">false</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">11sp</item>
+    </style>
 </resources>

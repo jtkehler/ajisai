@@ -4,5 +4,6 @@ enum class OverlayAction {
     ToggleOverlay,
     RunOcr,
     ConfigureOcrBox,
+    OpenSettings,
     CloseOverlay,
 }

@@ -54,6 +54,25 @@ class GoogleLensOcrEngineTest {
         bitmap.recycle()
     }
 
+    @Test
+    fun finalResultTextUsesFuriganaFilteredLines() = runBlocking {
+        val response = responseWithLines(
+            lineWithGeometry("にほんご", 0.5f, 0.20f, 0.5f, 0.04f),
+            lineWithGeometry("日本語", 0.5f, 0.28f, 0.6f, 0.12f),
+        )
+        val engine = GoogleLensOcrEngine(
+            preprocessor = FixedPreprocessor,
+            transport = FixedTransport(LensResponse(200, response)),
+        )
+        val bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
+
+        val result = engine.recognize(bitmap)
+
+        assertEquals("日本語", result.text)
+        assertEquals(listOf("日本語"), result.lines.map(OcrTextLine::text))
+        bitmap.recycle()
+    }
+
     private object FixedPreprocessor : OcrImagePreprocessor {
         override fun preprocess(image: Bitmap, region: android.graphics.Rect?) =
             ProcessedOcrImage(byteArrayOf(9), 1, 1)
@@ -81,11 +100,33 @@ class GoogleLensOcrEngineTest {
     private fun responseWithText(text: String): ByteArray {
         val word = message(fieldString(2, text))
         val line = message(fieldMessage(1, word))
-        val paragraph = message(fieldMessage(2, line))
+        return responseWithLines(line)
+    }
+
+    private fun responseWithLines(vararg lines: ByteArray): ByteArray {
+        val paragraph = message(*lines.map { fieldMessage(2, it) }.toTypedArray())
         val layout = message(fieldMessage(1, paragraph))
         val textPayload = message(fieldMessage(1, layout), fieldString(2, "ja"))
         val objects = message(fieldMessage(3, textPayload))
         return message(fieldMessage(2, objects))
+    }
+
+    private fun lineWithGeometry(
+        text: String,
+        centerX: Float,
+        centerY: Float,
+        width: Float,
+        height: Float,
+    ): ByteArray {
+        val word = message(fieldString(2, text))
+        val box = message(
+            fieldFloat(1, centerX),
+            fieldFloat(2, centerY),
+            fieldFloat(3, width),
+            fieldFloat(4, height),
+        )
+        val geometry = message(fieldMessage(1, box))
+        return message(fieldMessage(1, word), fieldMessage(2, geometry))
     }
 
     private fun fieldString(number: Int, value: String) = fieldMessage(number, value.encodeToByteArray())
@@ -94,6 +135,16 @@ class GoogleLensOcrEngineTest {
         varint(((number shl 3) or 2).toLong()),
         varint(value.size.toLong()),
         value,
+    )
+
+    private fun fieldFloat(number: Int, value: Float) = message(
+        varint(((number shl 3) or 5).toLong()),
+        byteArrayOf(
+            value.toBits().toByte(),
+            (value.toBits() ushr 8).toByte(),
+            (value.toBits() ushr 16).toByte(),
+            (value.toBits() ushr 24).toByte(),
+        ),
     )
 
     private fun message(vararg values: ByteArray) =

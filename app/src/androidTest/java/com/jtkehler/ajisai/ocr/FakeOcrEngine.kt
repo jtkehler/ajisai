@@ -4,7 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Rect
 
 internal class FakeOcrEngine(
-    var result: OcrResult = OcrResult("日本語", listOf("日本語"), "Fake"),
+    var result: OcrResult = OcrResult("日本語", listOf(OcrTextLine("日本語")), "Fake"),
     var failure: OcrException? = null,
 ) : OcrEngine {
     var calls = 0

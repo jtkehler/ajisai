@@ -10,6 +10,7 @@ import android.util.Log
 import android.view.WindowManager
 import android.widget.Toast
 import com.jtkehler.ajisai.R
+import com.jtkehler.ajisai.SettingsActivity
 import com.jtkehler.ajisai.input.FloatingBubbleTriggerSource
 import com.jtkehler.ajisai.input.OverlayActionCallbacks
 import com.jtkehler.ajisai.input.OverlayTriggerRouter
@@ -28,8 +29,9 @@ class OverlayService : Service() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var triggerSource: FloatingBubbleTriggerSource? = null
     private var bubbleController: FloatingBubbleController? = null
-    private var panelController: OverlayPanelController? = null
-    private var ocrResultPanelController: OcrResultPanelController? = null
+    private var hudController: OverlayHudController? = null
+    private var quickControlsController: QuickControlsController? = null
+    private var ocrTextPanelController: BottomOcrTextPanelController? = null
     private var ocrBoxEditorController: OcrBoxEditorController? = null
     private var ocrRunner: OcrRunner? = null
     private var preserveError = false
@@ -51,15 +53,16 @@ class OverlayService : Service() {
 
     override fun onDestroy() {
         ocrBoxEditorController?.dismiss(notifyClosed = false)
-        ocrRunner?.clear()
-        ocrResultPanelController?.hide()
-        panelController?.hide()
+        hudController?.collapse()
+        ocrTextPanelController?.hide()
+        quickControlsController?.hide()
         bubbleController?.hide()
         triggerSource?.stop()
         ocrBoxEditorController = null
         ocrRunner = null
-        ocrResultPanelController = null
-        panelController = null
+        ocrTextPanelController = null
+        quickControlsController = null
+        hudController = null
         bubbleController = null
         triggerSource = null
         val permission = if (Settings.canDrawOverlays(this)) {
@@ -90,61 +93,54 @@ class OverlayService : Service() {
         }
 
         val windowManager = getSystemService(WindowManager::class.java)
-        lateinit var panel: OverlayPanelController
-        lateinit var resultPanel: OcrResultPanelController
+        lateinit var hud: OverlayHudController
         lateinit var bubble: FloatingBubbleController
         lateinit var editor: OcrBoxEditorController
         val runner = OcrDependencies.runner(this, scope)
-        resultPanel = OcrResultPanelController(
-            context = this,
-            windowManager = windowManager,
-            onRetry = runner::retry,
-            onTextChanged = runner::updateText,
-            onClearClose = runner::clear,
-        )
         val router = OverlayTriggerRouter(
             OverlayActionCallbacks(
                 toggleOverlay = {
-                    if (resultPanel.isShowing) {
-                        runner.clear()
-                    } else if (!panel.toggle()) {
+                    if (!hud.toggle()) {
                         showPlaceholder(R.string.overlay_panel_failed)
                     }
                 },
-                runOcr = {
-                    panel.hide()
-                    runner.run()
-                },
+                runOcr = runner::run,
                 configureOcrBox = {
-                    runner.clear()
-                    panel.hide()
-                    bubble.hide()
+                    hud.suspendForEditor()
                     if (!editor.show()) {
-                        bubble.show()
+                        hud.resumeAfterEditor()
                         showPlaceholder(R.string.ocr_box_editor_failed)
                     }
+                },
+                openSettings = {
+                    hud.collapse()
+                    startActivity(
+                        Intent(this, SettingsActivity::class.java)
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                    )
                 },
                 closeOverlay = { stopSelf() },
             ),
         )
         val source = FloatingBubbleTriggerSource(router)
-        panel = OverlayPanelController(this, windowManager, source)
+        val quickControls = QuickControlsController(this, windowManager, source)
+        val ocrTextPanel = BottomOcrTextPanelController(this, windowManager)
+        hud = OverlayHudController(runner, quickControls, ocrTextPanel)
         bubble = FloatingBubbleController(
             context = this,
             windowManager = windowManager,
             triggerSource = source,
             positionStore = BubblePositionStore(this),
-            onPositionChanged = { position, size ->
-                panel.updateAnchor(position, size)
-                resultPanel.updateAnchor(position, size)
-            },
+            onPositionChanged = { _, _ -> },
         )
         editor = AndroidOcrBoxEditorController(
             context = this,
             windowManager = windowManager,
             repository = OcrBoxDependencies.repository(this),
             onClosed = {
-                if (!bubble.show()) showPlaceholder(R.string.overlay_bubble_restore_failed)
+                if (!hud.resumeAfterEditor()) {
+                    showPlaceholder(R.string.ocr_result_panel_failed)
+                }
             },
             onSaveFailed = { showPlaceholder(R.string.ocr_box_save_failed) },
         )
@@ -164,16 +160,17 @@ class OverlayService : Service() {
         }
 
         triggerSource = source
-        panelController = panel
-        ocrResultPanelController = resultPanel
+        hudController = hud
+        quickControlsController = quickControls
+        ocrTextPanelController = ocrTextPanel
         bubbleController = bubble
         ocrBoxEditorController = editor
         ocrRunner = runner
         scope.launch {
             runner.state.collect { state ->
-                if (!resultPanel.render(state)) {
+                if (!hud.render(state)) {
                     showPlaceholder(R.string.ocr_result_panel_failed)
-                    runner.clear()
+                    hud.collapse()
                 }
             }
         }

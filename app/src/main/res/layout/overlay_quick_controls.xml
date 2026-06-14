@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/overlay_quick_controls"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_overlay_panel"
+    android:orientation="horizontal"
+    android:padding="3dp">
+
+    <TextView
+        android:id="@+id/overlay_quick_ocr_box"
+        style="@style/OverlayQuickActionText"
+        android:contentDescription="@string/overlay_action_configure"
+        android:text="@string/overlay_quick_box" />
+
+    <TextView
+        android:id="@+id/overlay_quick_settings"
+        style="@style/OverlayQuickActionText"
+        android:contentDescription="@string/settings"
+        android:text="@string/overlay_quick_settings" />
+
+    <TextView
+        android:id="@+id/overlay_quick_hide"
+        style="@style/OverlayQuickActionText"
+        android:contentDescription="@string/overlay_quick_hide_description"
+        android:text="@string/overlay_quick_hide" />
+
+</LinearLayout>

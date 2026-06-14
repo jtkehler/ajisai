@@ -56,7 +56,7 @@
     <string name="preview_ocr_crop">Preview saved box crop</string>
     <string name="ocr_crop_preview_description">Preview cropped using the saved OCR box</string>
     <string name="overlay_section_title">Overlay debug</string>
-    <string name="overlay_debug_explanation">Show a compact movable bubble over other apps. OCR captures one fresh screenshot, crops the saved OCR box, and shows editable Google Lens text.</string>
+    <string name="overlay_debug_explanation">Show a compact movable bubble over other apps. Toggle the HUD to capture one fresh screenshot, crop the saved OCR box, and show Google Lens text.</string>
     <string name="overlay_permission_missing">Overlay permission: missing</string>
     <string name="overlay_permission_granted">Overlay permission: granted</string>
     <string name="overlay_service_stopped">Overlay service: stopped</string>
@@ -71,6 +71,10 @@
     <string name="overlay_action_ocr">OCR</string>
     <string name="overlay_action_configure">Configure OCR Box</string>
     <string name="overlay_action_close">Close / Hide Overlay</string>
+    <string name="overlay_quick_box">Box</string>
+    <string name="overlay_quick_settings">Set</string>
+    <string name="overlay_quick_hide">Hide</string>
+    <string name="overlay_quick_hide_description">Hide Ajisai HUD</string>
     <string name="overlay_panel_failed">The overlay panel could not be opened.</string>
     <string name="ocr_box_editor_description">Editable OCR crop rectangle</string>
     <string name="ocr_box_editor_hint">Drag inside to move. Drag handles to resize.</string>
@@ -84,7 +88,9 @@
     <string name="overlay_debug_crop_created">OCR is not running. Debug crop created: %1$d × %2$d px.</string>
     <string name="ocr_status_capturing">Capturing fresh screenshot…</string>
     <string name="ocr_status_recognizing">Recognizing text…</string>
-    <string name="ocr_status_success">Editable OCR text</string>
+    <string name="ocr_status_ready">OCR ready</string>
+    <string name="ocr_status_success">OCR text</string>
+    <string name="ocr_status_error">OCR unavailable</string>
     <string name="ocr_retry">Retry</string>
     <string name="ocr_copy">Copy</string>
     <string name="ocr_clear_close">Clear / Close</string>

@@ -59,8 +59,30 @@ class LensProtocolTest {
 
         val parsed = LensResponseParser().parse(response)
 
-        assertEquals(listOf("日本語", "です"), parsed.lines)
+        assertEquals(listOf("日本語", "です"), parsed.lines.map(OcrTextLine::text))
         assertEquals("ja", parsed.contentLanguage)
+    }
+
+    @Test
+    fun responseParserPreservesNormalizedLineGeometry() {
+        val response = fieldMessage(2, fieldMessage(3, message(
+            fieldMessage(1, fieldMessage(1, message(
+                fieldMessage(2, lineWithGeometry(
+                    geometry(centerX = 0.5f, centerY = 0.4f, width = 0.6f, height = 0.1f),
+                    word("日本語", ""),
+                )),
+            ))),
+        )))
+
+        val parsedLine = LensResponseParser().parse(response).lines.single()
+
+        assertEquals("日本語", parsedLine.text)
+        assertEquals(OcrWritingDirection.HORIZONTAL, parsedLine.writingDirection)
+        val box = requireNotNull(parsedLine.boundingBox)
+        assertEquals(0.2f, box.left, 0.0001f)
+        assertEquals(0.35f, box.top, 0.0001f)
+        assertEquals(0.8f, box.right, 0.0001f)
+        assertEquals(0.45f, box.bottom, 0.0001f)
     }
 
     @Test
@@ -80,6 +102,19 @@ class LensProtocolTest {
     private fun line(vararg words: ByteArray): ByteArray =
         message(*words.map { fieldMessage(1, it) }.toTypedArray())
 
+    private fun lineWithGeometry(geometry: ByteArray, vararg words: ByteArray): ByteArray = message(
+        *words.map { fieldMessage(1, it) }.toTypedArray(),
+        fieldMessage(2, geometry),
+    )
+
+    private fun geometry(centerX: Float, centerY: Float, width: Float, height: Float): ByteArray =
+        message(fieldMessage(1, message(
+            fieldFloat(1, centerX),
+            fieldFloat(2, centerY),
+            fieldFloat(3, width),
+            fieldFloat(4, height),
+        )))
+
     private fun word(text: String, separator: String): ByteArray = message(
         fieldString(2, text),
         fieldString(3, separator),
@@ -92,6 +127,16 @@ class LensProtocolTest {
         varint(((number shl 3) or 2).toLong()),
         varint(value.size.toLong()),
         value,
+    )
+
+    private fun fieldFloat(number: Int, value: Float): ByteArray = message(
+        varint(((number shl 3) or 5).toLong()),
+        byteArrayOf(
+            value.toBits().toByte(),
+            (value.toBits() ushr 8).toByte(),
+            (value.toBits() ushr 16).toByte(),
+            (value.toBits() ushr 24).toByte(),
+        ),
     )
 
     private fun message(vararg fields: ByteArray): ByteArray =
